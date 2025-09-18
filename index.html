@@ -53,6 +53,15 @@
             background-color: #3498db;
             color: #fff;
         }
+        .open-answer {
+            width: 100%;
+            min-height: 80px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-family: Arial, sans-serif;
+        }
         .submit-btn {
             background-color: #27ae60;
             border: none;
@@ -95,7 +104,7 @@
 </head>
 <body>
     <h1>Quiz Interativo de Bioquímica</h1>
-    <p style="text-align: center;">Este site contém questões interativas sobre vários tópicos de bioquímica. Selecione as respostas e clique em "Verificar" para ver os resultados.</p>
+    <p style="text-align: center;">Este site contém questões interativas sobre vários tópicos de bioquímica. Selecione as respostas e clique em "Verificar" para ver os resultados. Inclui questões de múltipla escolha (nível faculdade+) e 10 abertas.</p>
 
     <!-- Seção 1: Reações Endergônicas e Exergônicas -->
     <div class="section" id="section1">
@@ -133,6 +142,16 @@
         <div class="result" id="result4" style="display: none;"></div>
     </div>
 
+    <!-- Seção 5: Questões Abertas (10 no total, distribuídas) -->
+    <div class="section" id="section5">
+        <h2>Questões Abertas (Nível Avançado)</h2>
+        <p>Responda livremente nas caixas de texto. Verificação parcial baseada em palavras-chave.</p>
+        <div id="questions5"></div>
+        <button class="submit-btn" onclick="checkAnswers('section5')">Verificar Respostas</button>
+        <div class="feedback" id="feedback5"></div>
+        <div class="result" id="result5" style="display: none;"></div>
+    </div>
+
     <script>
         // Função para embaralhar array (Fisher-Yates shuffle)
         function shuffle(array) {
@@ -143,123 +162,160 @@
             return array;
         }
 
-        // Pools de perguntas expandidos com mais de 20 por seção, incluindo novas da internet
+        // Pools expandidos: ~25 MC por seção (nível faculdade+), todas em PT-BR
         const questionPools = {
             section1: [
-                { q: "1. Em um contexto celular, por que a hidrólise de ATP é considerada exergônica, e como isso acopla reações endergônicas como a síntese de macromoléculas?", options: ["A: Libera energia livre para impulsionar reações que absorvem energia", "B: Absorve energia para estabilizar moléculas", "C: Não envolve mudança em ΔG", "D: Sempre requer calor externo"], correct: "A" },
-                { q: "2. Considere uma reação endergônica com ΔG = +10 kJ/mol. Como uma célula pode torná-la espontânea acoplando-a a uma reação exergônica com ΔG = -20 kJ/mol?", options: ["A: O ΔG total torna-se negativo (-10 kJ/mol)", "B: O ΔG total permanece positivo", "C: Não é possível acoplar reações", "D: Apenas enzimas podem alterar ΔG"], correct: "A" },
-                { q: "3. Na fotossíntese, a fixação de CO2 é endergônica. Qual mecanismo bioenergético a torna viável nas cloroplastos?", options: ["A: Acoplamento à oxidação de água, que é exergônica", "B: Uso direto de luz sem intermediários", "C: Absorção de ATP do citoplasma", "D: Reação com glicose armazenada"], correct: "A" },
-                { q: "4. Por que reações exergônicas em vias metabólicas, como a glicólise, são reguladas por inibidores alostéricos em condições de alta energia celular?", options: ["A: Para prevenir desperdício de energia quando ATP é abundante", "B: Para aumentar a produção de calor", "C: Para promover reações endergônicas isoladas", "D: Não há regulação em reações exergônicas"], correct: "A" },
-                { q: "5. Em termos termodinâmicos, explique por que a respiração celular é uma série de reações exergônicas controladas, em vez de uma única combustão explosiva.", options: ["A: Permite captura eficiente de energia em ATP via passos graduais", "B: Aumenta o ΔG total para mais energia", "C: Reduz a entropia do sistema", "D: Evita o uso de enzimas"], correct: "A" },
-                { q: "6. Como o conceito de energia de ativação diferencia reações endergônicas de exergônicas, e por que enzimas afetam apenas uma?", options: ["A: Enzimas reduzem energia de ativação, mas ΔG determina espontaneidade", "B: Endergônicas têm baixa energia de ativação", "C: Exergônicas não precisam de energia de ativação", "D: Enzimas alteram ΔG"], correct: "A" },
-                { q: "7. Em um cenário de jejum prolongado, como reações endergônicas como a gliconeogênese são sustentadas energeticamentE?", options: ["A: Acopladas a reações exergônicas da beta-oxidação de lipídios", "B: Usando energia solar diretamente", "C: Absorvendo glicose do sangue", "D: Parando todas as reações exergônicas"], correct: "A" },
-                { q: "8. Qual o impacto de uma mutação que torna uma enzima menos eficiente em acoplar ATP a uma reação endergônica em vias anabólicas?", options: ["A: Reduz a taxa de síntese de biomoléculas, levando a desequilíbrios metabólicos", "B: Aumenta a espontaneidade da reação", "C: Torna a reação exergônica", "D: Não afeta o metabolismo"], correct: "A" },
-                { q: "9. Por que o equilíbrio de reações exergônicas em sistemas abertos como células não atinge ΔG=0 rapidamente?", options: ["A: Fluxo contínuo de substratos e remoção de produtos mantém o gradiente", "B: Células são sistemas fechados", "C: Enzimas previnem equilíbrio", "D: ΔG é sempre zero em equilíbrio"], correct: "A" },
-                { q: "10. Em contextos evolutivos, como a preferência por vias exergônicas acopladas influenciou o desenvolvimento de metabolismos complexos?", options: ["A: Permit iu eficiência energética e sobrevivência em ambientes variáveis", "B: Reduziu a complexidade celular", "C: Eliminou a necessidade de ATP", "D: Tornou todas reações endergônicas"], correct: "A" },
-                { q: "A hidrólise de ATP é uma reação altamente:", options: ["A: endergônica", "B: aeróbia", "C: volátil", "D: exergônica"], correct: "D" },
-                { q: "As reações metabólicas podem ser classificadas em dois processos metabólicos. O processo no qual as reações levam à síntese de biomoléculas é denominado:", options: ["A: metabolismo oxidativo", "B: oxidação", "C: catabolismo", "D: anabolismo"], correct: "D" },
-                { q: "Que nome recebe a molécula considerada como a moeda energética dos seres vivos?", options: ["A: ADP.", "B: ATP.", "C: DNA.", "D: RNA.", "E: AMP."], correct: "B" },
-                // Adicione mais se quiser, mas já expandi com as da internet
+                { type: 'mc', q: "A hidrólise de ATP é uma reação altamente:", options: ["A: endergônica", "B: aeróbia", "C: volátil", "D: exergônica"], correct: "D" },
+                { type: 'mc', q: "As reações metabólicas podem ser classificadas em dois processos metabólicos. O processo no qual as reações levam à síntese de biomoléculas é denominado:", options: ["A: metabolismo oxidativo", "B: oxidação", "C: catabolismo", "D: anabolismo"], correct: "D" },
+                { type: 'mc', q: "Que nome recebe a molécula considerada como a moeda energética dos seres vivos?", options: ["A: ADP.", "B: ATP.", "C: DNA.", "D: RNA.", "E: AMP."], correct: "B" },
+                { type: 'mc', q: "A energia livre de Gibbs, ΔG, é negativa para:", options: ["A: processos exergônicos", "B: processos endergônicos", "C: estados de equilíbrio", "D: estados ativados"], correct: "A" },
+                { type: 'mc', q: "Qual das seguintes é falsa sobre reações endergônicas e exergônicas?", options: ["A: Endergônicas têm ΔG positivo", "B: Exergônicas são espontâneas", "C: Enzimas alteram ΔG", "D: Acoplamento torna endergônicas viáveis"], correct: "C" },
+                { type: 'mc', q: "Uma reação com ΔG = -686 kcal/mol é:", options: ["A: endergônica", "B: exergônica", "C: em equilíbrio", "D: não espontânea"], correct: "B" },
+                { type: 'mc', q: "Reações exergônicas liberam:", options: ["A: energia", "B: apenas calor", "C: nada", "D: entropia"], correct: "A" },
+                { type: 'mc', q: "Reações endergônicas requerem:", options: ["A: entrada de energia", "B: saída de energia", "C: nenhuma mudança", "D: apenas catalisador"], correct: "A" },
+                { type: 'mc', q: "Nas células, processos endergônicos são impulsionados por:", options: ["A: hidrólise de ATP", "B: absorção de luz", "C: ambas A e B", "D: nenhuma"], correct: "C" },
+                { type: 'mc', q: "Reações espontâneas têm ΔG:", options: ["A: negativo", "B: positivo", "C: zero", "D: indefinido"], correct: "A" },
+                { type: 'mc', q: "Enzimas reduzem:", options: ["A: energia de ativação", "B: ΔG", "C: entropia", "D: entalpia"], correct: "A" },
+                { type: 'mc', q: "Reações acopladas tornam ΔG geral:", options: ["A: negativo", "B: positivo", "C: zero", "D: variável"], correct: "A" },
+                { type: 'mc', q: "A fixação de CO2 na fotossíntese é:", options: ["A: endergônica", "B: exergônica", "C: neutra", "D: explosiva"], correct: "A" },
+                { type: 'mc', q: "O ΔG da hidrólise de ATP é aproximadamente:", options: ["A: -7,3 kcal/mol", "B: +7,3 kcal/mol", "C: 0", "D: +30 kcal/mol"], correct: "A" },
+                { type: 'mc', q: "Em termodinâmica bioquímica, o acoplamento redox na cadeia de transporte de elétrons gera:", options: ["A: gradiente protônico para ATP sintase", "B: ΔG positivo direto", "C: entropia negativa total", "D: equilíbrio sem fluxo"], correct: "A" },
+                { type: 'mc', q: "Uma reação com ΔH negativo e ΔS positivo é sempre:", options: ["A: exergônica", "B: endergônica", "C: em equilíbrio", "D: dependente de temperatura"], correct: "A" },
+                { type: 'mc', q: "O papel das enzimas em reações endergônicas é:", options: ["A: reduzir Ea, facilitando acoplamento", "B: alterar ΔG", "C: aumentar entropia", "D: bloquear espontaneidade"], correct: "A" },
+                { type: 'mc', q: "Em sistemas abertos celulares, o ΔG efetivo difere do padrão porque:", options: ["A: concentrações não são 1M", "B: temperatura é 0K", "C: pH é neutro sempre", "D: enzimas ignoram isso"], correct: "A" },
+                { type: 'mc', q: "A síntese de proteínas no ribossomo é endergônica devido a:", options: ["A: ligações peptídicas requerendo GTP/ATP", "B: hidrólise espontânea", "C: baixa entropia de aminoácidos", "D: ausência de chaperonas"], correct: "A" },
+                { type: 'mc', q: "O conceito de 'equilíbrio de Nash' em vias metabólicas acopladas refere-se a:", options: ["A: otimização energética via regulação alostérica", "B: combustão total", "C: isolamento termodinâmico", "D: reversibilidade total"], correct: "A" },
+                { type: 'mc', q: "Em fotossíntese, o transporte de elétrons não cíclico acopla:", options: ["A: produção de ATP e NADPH para fixação endergônica", "B: apenas O2 sem energia", "C: ΔG zero", "D: exergônico isolado"], correct: "A" },
+                { type: 'mc', q: "A constante de equilíbrio K_eq relaciona-se com ΔG° por:", options: ["A: ΔG° = -RT ln K_eq", "B: ΔG° = RT K_eq", "C: independência total", "D: apenas entalpia"], correct: "A" },
+                { type: 'mc', q: "Reações com ΔG próximo a zero são sensíveis a:", options: ["A: pequenas mudanças de concentração", "B: temperatura extrema", "C: ausência de solvente", "D: catalisadores inorgânicos"], correct: "A" },
+                { type: 'mc', q: "O acoplamento fosforilativo na mitocôndria explora:", options: ["A: quimiosmose para converter ΔG redox em ATP", "B: combustão direta", "C: difusão livre de prótons", "D: equilíbrio osmótico"], correct: "A" }
             ],
             section2: [
-                { q: "1. Durante o exercício intenso, como a glicólise anaeróbica fornece energia rápida, mas leva à acidose láctica, e qual o papel da gliconeogênese na recuperação?", options: ["A: Glicólise produz ATP rápido; gliconeogênese recicla lactato no fígado", "B: Gliconeogênese ocorre nos músculos durante exercício", "C: Glicogênese armazena lactato", "D: Glicólise é inibida pela acidose"], correct: "A" },
-                { q: "2. Em pacientes com diabetes tipo 1, por que a gliconeogênese hepática excessiva contribui para hiperglicemia, apesar da baixa insulina?", options: ["A: Baixa insulina falha em inibir enzimas da gliconeogênese como PEPCK", "B: Aumenta a glicogênese", "C: Inibe a glicólise completamente", "D: Não afeta níveis de glicose"], correct: "A" },
-                { q: "3. Como a regulação alostérica da fosfofrutoquinase-1 (PFK-1) integra sinais de energia celular na glicólise e glicogênese?", options: ["A: ATP inibe PFK-1, desviando para glicogênese; AMP ativa para glicólise", "B: PFK-1 é ativada por baixa energia sempre", "C: Não há integração entre vias", "D: Gliconeogênese ativa PFK-1"], correct: "A" },
-                { q: "4. Em um contexto de fome, explique o papel da glicogenólise inicial seguida pela gliconeogênese, e por que a glicogênese é suprimida.", options: ["A: Glicogenólise libera glicose rápida; gliconeogênese sustenta longo prazo; baixa insulina suprime glicogênese", "B: Glicogênese ocorre durante fome", "C: Glicólise é a principal fonte", "D: Não há supressão de vias"], correct: "A" },
-                { q: "5. Qual o impacto de uma deficiência em glicogênio sintase na capacidade de armazenar energia pós-refeição, levando a hipoglicemia?", options: ["A: Reduz glicogênese, causando excesso de glicose no sangue inicialmente, mas hipoglicemia posterior", "B: Aumenta gliconeogênese constante", "C: Inibe glicólise", "D: Não afeta armazenamento"], correct: "A" },
-                { q: "6. Como substratos como alanina e glicerol são usados na gliconeogênese durante cetose, interconectando metabolismo de aminoácidos e lipídios?", options: ["A: Alanina fornece piruvato; glicerol entra via DHAP para síntese de glicose", "B: Apenas glicose é usada", "C: Cetose inibe gliconeogênese", "D: Aminoácidos não contribuem"], correct: "A" },
-                { q: "7. Em termos enzimáticos, por que a glicólise e gliconeogênese não ocorrem simultaneamente na mesma célula, evitando ciclos fúteis?", options: ["A: Regulação recíproca: ativação de uma inibe a outra via hormônios como glucagon", "B: Ambas ocorrem sempre", "C: Enzimas são as mesmas", "D: Ciclos fúteis são eficientes"], correct: "A" },
-                { q: "8. Durante infecções, como a glicólise em células imunes (efeito Warburg) fornece vantagens, apesar de ser menos eficiente que a respiração aeróbica?", options: ["A: Produz intermediários para biossíntese rápida e NADPH para defesa oxidativa", "B: Inibe gliconeogênese completamente", "C: Reduz ATP total", "D: Não há vantagens"], correct: "A" },
-                { q: "9. Qual o papel da frutose-2,6-bisfosfato na regulação bifuncional da PFK-2/FBPase-2, afetando glicólise vs. gliconeogênese?", options: ["A: Ativa PFK-1 para glicólise; inibe FBPase-1 para gliconeogênese", "B: Inibe ambas vias", "C: Não regula enzimas", "D: Apenas em músculos"], correct: "A" },
-                { q: "10. Em distúrbios genéticos como doença de von Gierke (deficiência de glucose-6-fosfatase), por que há acúmulo de glicogênio e hipoglicemia?", options: ["A: Bloqueia liberação de glicose da gliconeogênese e glicogenólise", "B: Aumenta glicólise excessiva", "C: Reduz glicogênese", "D: Não afeta glicose"], correct: "A" },
-                { q: "A glicólise é um importante processo que ocorre no interior da célula em que uma molécula de glicose é quebrada em:", options: ["A: uma molécula de ácido pirúvico.", "B: duas moléculas de ácido pirúvico.", "C: três moléculas de ácido pirúvico.", "D: em uma molécula de ácido nucleico.", "E: em duas moléculas de ácido nucleico."], correct: "B" },
-                { q: "Analisando as alternativas abaixo, marque aquela em que é indicado o local onde acontece o processo de glicólise.", options: ["A: na mitocôndria.", "B: no cloroplasto.", "C: no ribossomo.", "D: no retículo endoplasmático.", "E: no citosol."], correct: "E" },
-                { q: "A glicólise pode ser dividida em duas etapas, uma fase de investimento e uma fase de compensação. Na fase de investimento, utilizam-se __ ATP e, na fase de compensação, são produzidos ___ ATP. Analise as alternativas e marque aquela que completa, respectiva e adequadamente, os dois espaços acima.", options: ["A: 1 e 2.", "B: 2 e 2.", "C: 2 e 3.", "D: 2 e 4.", "E: 3 e 5."], correct: "D" },
-                { q: "(UEM) Assinale a alternativa correta a respeito da respiração celular.", options: ["A: A glicólise consiste na conversão de glicose em ácido pirúvico.", "B: O ciclo de Krebs consiste na conversão de ácido pirúvico em ácido láctico.", "C: Na cadeia respiratória, ocorre o transporte de hidrogênio para formar ácido pirúvico.", "D: No ciclo de Krebs, ocorrem o transporte de hidrogênio, de oxigênio molecular e a produção de água.", "E: Todo o processo de respiração celular ocorre dentro das mitocôndrias."], correct: "A" },
-                { q: "(UEA) A respiração aeróbica pode ser dividida em três fases, denominadas glicólise, ciclo de Krebs e cadeia respiratória. Quanto aos locais da célula onde essas fases ocorrem, pode-se afirmar que:", options: ["A: A glicólise, o ciclo de Krebs e a cadeia respiratória ocorrem no interior das mitocôndrias.", "B: Apenas a glicólise e o ciclo de Krebs ocorrem no interior das mitocôndrias.", "C: Apenas o ciclo de Krebs e a cadeia respiratória ocorrem no interior das mitocôndrias.", "D: Apenas a glicólise e a cadeia respiratória ocorrem no interior das mitocôndrias.", "E: Apenas a cadeia respiratória ocorre no interior das mitocôndrias."], correct: "C" },
-                { q: "A glicólise é a primeira via metabólica da glicose e apresenta dez reações químicas. Esse importante processo ocorre no interior da célula, mais precisamente", options: ["A: na mitocôndria.", "B: no lisossomo.", "C: na membrana plasmática.", "D: no citosol.", "E: no núcleo."], correct: "D" },
-                { q: "A glicólise é uma via metabólica que tem por objetivo oxidar a glicose a fim de conseguir ATP. Nesse processo, a glicose é convertida em duas moléculas de:", options: ["A: aminoácidos.", "B: piruvato.", "C: acetil-Coa.", "D: álcool.", "E: oxalacetato."], correct: "B" },
-                { q: "Observe as alternativas a seguir e marque aquela que apresenta corretamente o saldo final de ATP no processo de glicólise.", options: ["A: 1", "B: 2", "C: 6.", "D: 30.", "E: 36."], correct: "B" },
-                { q: "(PUC-SP) Certa substância tóxica foi introduzida em um meio de cultura contendo células em crescimento. Após algum tempo, as células tiveram seu metabolismo alterado, uma vez que a substância bloqueou a atividade de algumas enzimas catalisadoras de reações da glicólise. Pode-se dizer que a substância em questão atuou nas células ao nível de:", options: ["A: Hialoplasma.", "B: Mitocôndria.", "C: Ergastoplasma.", "D: Núcleo.", "E: Ribossomo."], correct: "A" },
-                { q: "(UDESC) A glicólise é um processo que compreende dez reações químicas, cada uma delas com a participação de uma enzima específica. Assinale a alternativa correta em relação à glicólise anaeróbica.", options: ["A: É o processo responsável pela quebra da glicose, transformando-a em piruvato ou ácido pirúvico.", "B: É realizada apenas em células animais e procariontes heterotróficos.", "C: Promove a quebra da glicose no interior da mitocôndria.", "D: Libera energia na forma de 38 ATPs.", "E: Transforma ácido lático em ácido pirúvico."], correct: "A" },
-                // Mais podem ser adicionadas
+                { type: 'mc', q: "A glicólise é um importante processo que ocorre no interior da célula em que uma molécula de glicose é quebrada em:", options: ["A: uma molécula de ácido pirúvico.", "B: duas moléculas de ácido pirúvico.", "C: três moléculas de ácido pirúvico.", "D: em uma molécula de ácido nucleico.", "E: em duas moléculas de ácido nucleico."], correct: "B" },
+                { type: 'mc', q: "Analisando as alternativas abaixo, marque aquela em que é indicado o local onde acontece o processo de glicólise.", options: ["A: na mitocôndria.", "B: no cloroplasto.", "C: no ribossomo.", "D: no retículo endoplasmático.", "E: no citosol."], correct: "E" },
+                { type: 'mc', q: "A glicólise pode ser dividida em duas etapas, uma fase de investimento e uma fase de compensação. Na fase de investimento, utilizam-se __ ATP e, na fase de compensação, são produzidos ___ ATP. Analise as alternativas e marque aquela que completa, respectiva e adequadamente, os dois espaços acima.", options: ["A: 1 e 2.", "B: 2 e 2.", "C: 2 e 3.", "D: 2 e 4.", "E: 3 e 5."], correct: "D" },
+                { type: 'mc', q: "Uma enzima usada tanto na glicólise quanto na gliconeogênese é:", options: ["A: 3-fosfoglicerato quinase", "B: glucose-6-fosfatase", "C: hexoquinase", "D: fosfofrutoquinase-1"], correct: "A" },
+                { type: 'mc', q: "Qual não é um precursor de glicose em animais?", options: ["A: lactato", "B: glicerol", "C: acetil-CoA", "D: alanina"], correct: "C" },
+                { type: 'mc', q: "A gliconeogênese é estimulada por:", options: ["A: glucagon", "B: insulina", "C: glicose alta", "D: ATP baixo"], correct: "A" },
+                { type: 'mc', q: "A glicogênese é a síntese de:", options: ["A: glicogênio a partir de glicose", "B: glicose a partir de glicogênio", "C: lactato a partir de piruvato", "D: gordura a partir de carboidratos"], correct: "A" },
+                { type: 'mc', q: "O saldo líquido de ATP da glicólise é:", options: ["A: 2", "B: 4", "C: 36", "D: 0"], correct: "A" },
+                { type: 'mc', q: "A PFK-1 é inibida por:", options: ["A: ATP", "B: AMP", "C: frutose-2,6-bisfosfato", "D: ADP"], correct: "A" },
+                { type: 'mc', q: "A glicogenólise é acelerada por:", options: ["A: glucagon", "B: insulina", "C: glicose", "D: UTP"], correct: "A" },
+                { type: 'mc', q: "Na glicólise, glicose a piruvato ocorre no:", options: ["A: citosol", "B: mitocôndria", "C: núcleo", "D: RE"], correct: "A" },
+                { type: 'mc', q: "Enzima de bypass na gliconeogênese para piruvato quinase é:", options: ["A: piruvato carboxilase", "B: enolase", "C: aldolase", "D: mutase"], correct: "A" },
+                { type: 'mc', q: "A doença de armazenamento de glicogênio de von Gierke afeta:", options: ["A: glucose-6-fosfatase", "B: enzima desramificadora", "C: sintase", "D: fosforilase"], correct: "A" },
+                { type: 'mc', q: "A frutose-2,6-bisfosfato ativa:", options: ["A: PFK-1", "B: FBPase-1", "C: ambas", "D: nenhuma"], correct: "A" },
+                { type: 'mc', q: "Na regulação da glicólise, o citrato inibe PFK-1 para:", options: ["A: sinalizar excesso de energia do TCA", "B: ativar gliconeogênese", "C: aumentar NADH", "D: bloquear piruvato"], correct: "A" },
+                { type: 'mc', q: "O shuttle de malato-aspartato transporta equivalentes redutores da glicólise para:", options: ["A: mitocôndria, gerando 2,5 ATP/NADH", "B: citosol apenas", "C: peroxisomas", "D: sem perda energética"], correct: "A" },
+                { type: 'mc', q: "Em hipóxia, o acúmulo de lactato na glicólise anaeróbica é devido a:", options: ["A: regeneração de NAD+ via LDH", "B: produção de ATP extra", "C: inibição de piruvato desidrogenase", "D: bypass do ciclo de Krebs"], correct: "A" },
+                { type: 'mc', q: "A glicogênese ramificada usa glicogênio sintase e:", options: ["A: glicogenina como primer e ramificadora", "B: fosforilase apenas", "C: desramificadora constante", "D: insulina inibindo"], correct: "A" },
+                { type: 'mc', q: "Na gliconeogênese, o bypass da PFK-1 é via:", options: ["A: frutose-1,6-bisfosfatase, regulada por F2,6BP", "B: hexoquinase reversa", "C: aldolase direta", "D: sem regulação"], correct: "A" },
+                { type: 'mc', q: "O efeito Warburg em células tumorais favorece glicólise aeróbica para:", options: ["A: biossíntese rápida de nucleotídeos", "B: eficiência máxima de ATP", "C: redução de lactato", "D: inibição de mitocôndrias"], correct: "A" },
+                { type: 'mc', q: "A regulação hormonal da glicogênese envolve:", options: ["A: insulina ativando sintase via desfosforilação", "B: glucagon inibindo sempre", "C: epinefrina promovendo síntese", "D: sem cAMP"], correct: "A" },
+                { type: 'mc', q: "Em deficiências de piruvato quinase, há acúmulo de:", options: ["A: intermediários upstream, levando a anemia hemolítica", "B: glicose excessiva", "C: ATP alto constante", "D: sem impacto"], correct: "A" },
+                { type: 'mc', q: "O NADH da glicólise é reoxidado em condições aeróbicas via:", options: ["A: shuttle de glicerol-3-fosfato ou malato", "B: direto na mitocôndria", "C: fermentação obrigatória", "D: sem necessidade"], correct: "A" },
+                { type: 'mc', q: "A gliconeogênese consome quantos ATP/GTP por glicose?", options: ["A: 6", "B: 2", "C: 4", "D: 38"], correct: "A" }
             ],
             section3: [
-                { q: "1. Em bioenergética, como o potencial eletroquímico de prótons gerado na cadeia de transporte de elétrons impulsiona a síntese de ATP, conforme a hipótese quimiosmótica?", options: ["A: Gradiente de prótons ativa ATP sintase via fluxo de H+", "B: Elétrons diretamente formam ATP", "C: Não há gradiente envolvido", "D: Apenas em anaeróbios"], correct: "A" },
-                { q: "2. Durante hipóxia, por que as células alternam para fermentação lática, e qual o custo energético comparado à respiração aeróbica completa?", options: ["A: Regenera NAD+ para glicólise; produz apenas 2 ATP vs. 30-32 ATP", "B: Produz mais ATP que aeróbica", "C: Inibe ciclo de Krebs", "D: Não regenera cofatores"], correct: "A" },
-                { q: "3. Como inibidores como cianeto afetam a respiração celular, levando a morte celular, no contexto da fosforilação oxidativa?", options: ["A: Bloqueia complexo IV, parando fluxo de elétrons e gradiente de prótons", "B: Ativa glicólise excessiva", "C: Aumenta produção de ATP", "D: Não afeta mitocôndrias"], correct: "A" },
-                { q: "4. Em termos de rendimento, explique por que o NADH citosólico da glicólise produz menos ATP que o NADH mitocondrial no ciclo de Krebs.", options: ["A: Transporte via shuttles como malato-aspartato perde energia (2.5 ATP vs. 2.5-3 ATP)", "B: NADH citosólico não entra na cadeia", "C: Produz mais ATP", "D: Não há diferença"], correct: "A" },
-                { q: "5. Qual o papel dos desacopladores como DNP na bioenergética, e por que eles causam perda de peso mas são perigosos?", options: ["A: Dissipam gradiente de prótons sem ATP, gerando calor; hipertermia fatal", "B: Aumentam síntese de ATP", "C: Inibem glicólise", "D: Estabilizam membranas"], correct: "A" },
-                { q: "6. Em células cancerosas, como o efeito Warburg (glicólise aeróbica) suporta proliferação, integrando bioenergética com biossíntese?", options: ["A: Fornece intermediários para nucleotídeos e lipídios, mesmo com O2 presente", "B: Reduz respiração completamente", "C: Diminui proliferação", "D: Não integra com biossíntese"], correct: "A" },
-                { q: "7. Como o ciclo de Krebs serve como hub anfibólico, conectando respiração celular a outras vias metabólicas?", options: ["A: Fornece precursores para aminoácidos, porfirinas e lipídios além de reduzir cofatores", "B: Apenas catabólico", "C: Não conecta vias", "D: Inibe anabolismo"], correct: "A" },
-                { q: "8. Durante exercício, como a respiração celular se adapta ao aumento de demanda por ATP, envolvendo regulação da glicólise e cadeia eletrônica?", options: ["A: Aumento de ADP ativa enzimas como PFK-1 e complexos mitocondriais", "B: Reduz fluxo de elétrons", "C: Para ciclo de Krebs", "D: Não há adaptação"], correct: "A" },
-                { q: "9. Qual o impacto de mutações mitocondriais em genes como MT-ATP6 na produção de ATP e doenças associadas?", options: ["A: Reduz eficiência da ATP sintase, causando neuropatias e fadiga", "B: Aumenta ATP excessivo", "C: Afeta apenas glicólise", "D: Não causa doenças"], correct: "A" },
-                { q: "10. Em bioenergética evolutiva, por que a endosimbiose mitocondrial foi crucial para o desenvolvimento de eucariontes complexos?", options: ["A: Aumentou rendimento energético, permitindo genomas maiores e multicelularidade", "B: Reduziu energia disponível", "C: Eliminou respiração", "D: Não impactou evolução"], correct: "A" },
-                { q: "Na respiração celular, a célula é capaz de produzir energia para o seu funcionamento. Algumas etapas desse processo ocorrem no interior de uma organela denominada de:", options: ["A: Complexo golgiense.", "B: Mitocôndria.", "C: Cloroplasto.", "D: Retículo endoplasmático.", "E: Ribossomo."], correct: "B" },
-                { q: "Sabemos que a respiração celular é constituída por três etapas principais. Analise as alternativas a seguir e marque a etapa da respiração celular que ocorre no citosol.", options: ["A: Glicólise.", "B: Cadeia respiratória.", "C: Ciclo de Calvin.", "D: Ciclo de Krebs."], correct: "A" },
-                { q: "Observe as reações químicas a seguir e identifique a alternativa que indica corretamente a equação geral da respiração celular.", options: ["A: 6CO 2 + 2H 2S→ CH 2O + H 2O +2S", "B: C 6 H 12O 6 + 6O 2 → 6CO 2 + 6H 2O", "C: CO 2 + 4 H 2 → CH 4 + 2H 2O", "D: 6CO 2 + 12H 2O → C 6 H 12O 6 + 6O 2 + 6H 2O"], correct: "B" },
-                { q: "(Ufac) A maioria dos seres vivos atuais obtém energia por meio da respiração celular, também chamada respiração aeróbica por utilizar o oxigênio atmosférico. Esse tipo de respiração compõe-se de três etapas: glicólise, ciclo de Krebs e cadeia respiratória. Indique corretamente em quais compartimentos da célula ocorrem, respectivamente, as diferentes etapas da respiração.", options: ["A: Citosol, mitocôndria, mitocôndria.", "B: Citosol, citosol, mitocôndria.", "C: Mitocôndria, mitocôndria, citosol.", "D: Mitocôndria, citosol, mitocôndria.", "E: Citosol, mitocôndria, citosol."], correct: "A" },
-                { q: "(UFMS) As mitocôndrias são corpúsculos citoplasmáticos, em geral com forma de bastonetes, extremamente importantes para o funcionamento celular, pois são responsáveis pela", options: ["A: fotossíntese, nas plantas.", "B: respiração, nas plantas e animais.", "C: fermentação, nos animais.", "D: síntese proteica.", "E: síntese de açúcar."], correct: "B" },
-                // Mais podem ser adicionadas
+                { type: 'mc', q: "Na respiração celular, a célula é capaz de produzir energia para o seu funcionamento. Algumas etapas desse processo ocorrem no interior de uma organela denominada de:", options: ["A: Complexo golgiense.", "B: Mitocôndria.", "C: Cloroplasto.", "D: Retículo endoplasmático.", "E: Ribossomo."], correct: "B" },
+                { type: 'mc', q: "Sabemos que a respiração celular é constituída por três etapas principais. Analise as alternativas a seguir e marque a etapa da respiração celular que ocorre no citosol.", options: ["A: Glicólise.", "B: Cadeia respiratória.", "C: Ciclo de Calvin.", "D: Ciclo de Krebs."], correct: "A" },
+                { type: 'mc', q: "Vias metabólicas que liberam energia são:", options: ["A: catabólicas", "B: anabólicas", "C: ambas", "D: nenhuma"], correct: "A" },
+                { type: 'mc', q: "A fosforilação oxidativa produz:", options: ["A: ATP", "B: NADH", "C: FADH2", "D: CO2"], correct: "A" },
+                { type: 'mc', q: "Produto final da glicólise é:", options: ["A: piruvato", "B: glicose", "C: acetil-CoA", "D: lactato"], correct: "A" },
+                { type: 'mc', q: "A respiração aeróbica requer:", options: ["A: oxigênio", "B: CO2", "C: nitrogênio", "D: luz"], correct: "A" },
+                { type: 'mc', q: "Maior parte do ATP da respiração vem de:", options: ["A: cadeia de transporte de elétrons", "B: glicólise", "C: ciclo de Krebs", "D: fermentação"], correct: "A" },
+                { type: 'mc', q: "A glicólise produz ___ ATP.", options: ["A: 2", "B: 4", "C: 34", "D: 38"], correct: "A" },
+                { type: 'mc', q: "O ciclo de Krebs ocorre na:", options: ["A: matriz mitocondrial", "B: citosol", "C: membrana interna", "D: membrana externa"], correct: "A" },
+                { type: 'mc', q: "CO2 é produzido no:", options: ["A: ciclo de Krebs", "B: glicólise", "C: ETC", "D: ATP sintase"], correct: "A" },
+                { type: 'mc', q: "A fermentação regenera:", options: ["A: NAD+", "B: FAD", "C: ATP", "D: O2"], correct: "A" },
+                { type: 'mc', q: "ATP total da glicose aeróbica:", options: ["A: 30-32", "B: 2", "C: 4", "D: 36 exato"], correct: "A" },
+                { type: 'mc', q: "A ETC usa O2 como:", options: ["A: aceptor final de elétrons", "B: doador de prótons", "C: fonte de energia", "D: catalisador"], correct: "A" },
+                { type: 'mc', q: "Desacoplamento aumenta:", options: ["A: calor", "B: ATP", "C: eficiência", "D: prótons"], correct: "A" },
+                { type: 'mc', q: "O complexo I da ETC bombeia quantos prótons por NADH?", options: ["A: 4", "B: 2", "C: 6", "D: 0"], correct: "A" },
+                { type: 'mc', q: "O ciclo de Krebs é anfibólico porque fornece:", options: ["A: precursores para biossíntese e e- para ETC", "B: apenas ATP", "C: CO2 exclusivo", "D: sem NADH"], correct: "A" },
+                { type: 'mc', q: "O inibidor rotenona bloqueia:", options: ["A: complexo I, reduzindo gradiente protônico", "B: ATP sintase", "C: citrato sintase", "D: glicólise"], correct: "A" },
+                { type: 'mc', q: "A ATP sintase usa rotação para:", options: ["A: sintetizar ATP via quimiosmose", "B: transportar elétrons", "C: produzir calor", "D: inverter fluxo"], correct: "A" },
+                { type: 'mc', q: "O efeito Pasteur refere-se à:", options: ["A: inibição da glicólise por O2", "B: aceleração por CO2", "C: fermentação em aerobiose", "D: sem impacto"], correct: "A" },
+                { type: 'mc', q: "Em termogênese marrom, UCP1 causa:", options: ["A: dissipação do gradiente protônico como calor", "B: superprodução de ATP", "C: bloqueio de elétrons", "D: aumento de O2"], correct: "A" },
+                { type: 'mc', q: "O isocitrato desidrogenase é ativado por:", options: ["A: ADP e Ca2+", "B: ATP alto", "C: NADH excessivo", "D: succinato"], correct: "A" },
+                { type: 'mc', q: "O piruvato entra no TCA via:", options: ["A: piruvato desidrogenase formando acetil-CoA", "B: carboxilase direta", "C: glicólise reversa", "D: sem enzima"], correct: "A" },
+                { type: 'mc', q: "O rendimento de ATP de FADH2 é menor porque:", options: ["A: entra no Q, pulando complexo I", "B: não bombeia prótons", "C: é NADH variante", "D: bloqueia ETC"], correct: "A" },
+                { type: 'mc', q: "A hipótese quimiosmótica explica fosforilação via:", options: ["A: gradiente protônico transmembrana", "B: substrato direto", "C: química orgânica", "D: equilíbrio químico"], correct: "A" }
             ],
             section4: [
-                { q: "1. Em contextos de obesidade, como o armazenamento excessivo de triglicerídeos em adipócitos leva a resistência à insulina, envolvendo lipídios inflamatórios?", options: ["A: Liberação de ácidos graxos livres ativa vias pró-inflamatórias", "B: Reduz inflamação", "C: Inibe armazenamento", "D: Não afeta insulina"], correct: "A" },
-                { q: "2. Como os fosfolipídios formam bicamadas em membranas celulares, e qual o papel da assimetria na função celular?", options: ["A: Cabeças hidrofílicas externas, caudas hidrofóbicas internas; assimetria afeta sinalização", "B: Bicamadas são simétricas sempre", "C: Não formam membranas", "D: Apenas em procariotos"], correct: "A" },
-                { q: "3. Durante fome, explique a beta-oxidação de ácidos graxos e sua integração com o ciclo de Krebs via acetil-CoA.", options: ["A: Degrada ácidos graxos em acetil-CoA, que entra no Krebs para ATP", "B: Beta-oxidação ocorre no citoplasma", "C: Não integra com Krebs", "D: Produz glicose diretamente"], correct: "A" },
-                { q: "4. Qual o papel dos eicosanoides derivados de ácidos graxos poliinsaturados em respostas inflamatórias, e por que inibidores como aspirina os afetam?", options: ["A: Mediadores pró-inflamatórios; aspirina inibe COX, reduzindo síntese", "B: Reduzem inflamação sempre", "C: Não derivados de lipídios", "D: Aspirina ativa síntese"], correct: "A" },
-                { q: "5. Em distúrbios como hipercolesterolemia familiar, por que mutações em receptores de LDL levam a aterosclerose precoce?", options: ["A: Reduz clearance de colesterol, aumentando placas arteriais", "B: Aumenta HDL protetor", "C: Não afeta colesterol", "D: Reduz placas"], correct: "A" },
-                { q: "6. Como a síntese de ácidos graxos no citoplasma usa acetil-CoA do metabolismo de carboidratos, conectando lipogênese à glicólise?", options: ["A: Acetil-CoA de piruvato é usado pela ACC para malonil-CoA e alongamento", "B: Lipogênese não usa acetil-CoA", "C: Ocorre na mitocôndria", "D: Não conecta a glicólise"], correct: "A" },
-                { q: "7. Qual o impacto de ácidos graxos trans em membranas celulares e saúde cardiovascular comparado a cis?", options: ["A: Trans aumentam rigidez de membrana e LDL, promovendo aterosclerose", "B: Trans são mais saudáveis", "C: Não afetam membranas", "D: Cis causam rigidez"], correct: "A" },
-                { q: "8. Em contextos neuronais, por que lipídios como esfingomielina são cruciais para bainhas de mielina, e deficiências levam a demielinização?", options: ["A: Isolam axônios para condução rápida; deficiências causam esclerose múltipla-like", "B: Reduzem condução nervosa", "C: Não em neurônios", "D: Apenas em músculos"], correct: "A" },
-                { q: "9. Como os esteroides como cortisol são sintetizados a partir de colesterol, e qual sua regulação no eixo HPA?", options: ["A: Via enzimas como CYP11A1; ACTH estimula síntese adrenal", "B: Não derivados de colesterol", "C: Sem regulação hormonal", "D: Sintetizados de glicose"], correct: "A" },
-                { q: "10. Durante gravidez, como lipídios placentários como ácidos graxos essenciais são transportados para o feto, afetando desenvolvimento neurológico?", options: ["A: Via proteínas transportadoras como FABP; deficiências causam déficits cognitivos", "B: Não transportados", "C: Apenas carboidratos são essenciais", "D: Afetam apenas crescimento físico"], correct: "A" },
-                { q: "Os lipídios, chamados popularmente de gorduras, são substâncias que se caracterizam principalmente por sua baixa solubilidade em água. Entre as alternativas a seguir, marque aquela que não se refere a uma importância biológica dos lipídios.", options: ["A: Funcionam como reserva energética.", "B: Atuam na impermeabilização de superfícies que sofrem com a desidratação.", "C: Fazem parte da composição da membrana plasmática.", "D: Fazem parte da composição de hormônios.", "E: Atuam como catalisadores biológicos."], correct: "E" },
-                { q: "(UFRN) Embora seja visto como um vilão, o colesterol é muito importante para o organismo humano porque ele é", options: ["A: precursor da síntese de testosterona e progesterona.", "B: agente oxidante dos carboidratos.", "C: responsável pela resistência de cartilagens e tendões.", "D: cofator das reações biológicas."], correct: "A" },
-                { q: "Hormônios sexuais, como a testosterona e o estradiol, são exemplos de lipídios do grupo dos(as):", options: ["A: glicerídios.", "B: ceras.", "C: carotenoides.", "D: fosfolipídios.", "E: esteroides."], correct: "E" },
-                { q: "O colesterol é um tipo de lipídio muito importante para o homem, apesar de ser conhecido principalmente por causar problemas cardíacos, como a aterosclerose. Esse lipídio pode ser adquirido pelo nosso corpo através de dieta ou ser sintetizado em nosso fígado. Entre as alternativas a seguir, marque aquela que indica o tipo de lipídio no qual o colesterol enquadra-se.", options: ["A: glicerídios.", "B: ceras.", "C: carotenoides.", "D: fosfolipídios.", "E: esteroides."], correct: "E" },
-                { q: "(UFPI) A hidrólise de moléculas de lipídios produz:", options: ["A: aminoácidos e água.", "B: ácidos graxos e glicerol.", "C: glucose e glicerol.", "D: glicerol e água.", "E: ácidos graxos e água."], correct: "B" },
-                { q: "Usualmente, os triglicerídios, que em temperatura ambiente são sólidos, recebem a denominação de:", options: ["A: hormônios.", "B: óleos.", "C: azeites.", "D: gorduras.", "E: ácidos graxos."], correct: "D" },
-                { q: "Os fosfolipídios são ésteres de ácidos graxos que apresentam em sua molécula ácido fosfórico e um composto nitrogenado. Por essa razão, podem ser classificados como:", options: ["A: lipídios simples.", "B: lipídios ternários.", "C: lipídios complexos.", "D: lipídios percursores.", "E: lipídios derivados."], correct: "C" },
-                { q: "Sobre os lipídios, marque a alternativa incorreta.", options: ["A: Os lipídios apresentam importantes funções bioquímicas e fisiológicas.", "B: Uma das funções dos lipídios é atuar como fonte de energia.", "C: Os lipídios apresentam comportamento hidrofílico.", "D: Os lipídios, geralmente, apresentam coloração esbranquiçada ou amarelada.", "E: Os lipídios dissolvem-se em solventes orgânicos."], correct: "C" },
-                { q: "Marque a alternativa que não representa um tipo de lipídio.", options: ["A: Colesterol.", "B: Gordura.", "C: Triglicerídeo.", "D: Óleo.", "E: Glicogênio."], correct: "E" },
-                { q: "As lipoproteínas garantem o transporte de lipídios pelo nosso corpo. Marque a alternativa que indica o tipo de lipoproteína que atua retirando o excesso de colesterol presente nos tecidos e levando-o para o fígado.", options: ["A: LDL.", "B: LDH.", "C: HDL.", "D: ILDL.", "E: APDL."], correct: "C" },
-                { q: "(UFU-MG) O colesterol é um esteroide que constitui um dos principais grupos de lipídios. Com relação a esse tipo particular de lipídio, é correto afirmar que:", options: ["A: Na espécie humana, o excesso de colesterol aumenta a eficiência da passagem do sangue no interior dos vasos sanguíneos, acarretando a arteriosclerose.", "B: O colesterol participa da composição química das membranas das células animais e é precursor dos hormônios sexuais masculino (testosterona) e feminino (estrógeno).", "C: O colesterol é encontrado em alimentos de origem tanto animal como vegetal (como por exemplo, manteigas, margarinas, óleos de soja, milho, etc.), uma vez que é derivado do metabolismo dos glicerídeos.", "D: Nas células vegetais, o excesso de colesterol diminui a eficiência dos processos de transpiração celular e da fotossíntese."], correct: "B" },
-                { q: "(Unicamp-SP-adaptada). Os lipídios são:", options: ["A: Os compostos energéticos consumidos preferencialmente pelo organismo;", "B: Mais abundantes na composição química dos vegetais do que na dos animais;", "C: Substâncias insolúveis na água, mas solúveis nos chamados solventes orgânicos (álcool, éter, benzeno);", "D: Presentes como fosfolipídios no interior da célula, mas nunca na estrutura da membrana plasmática;"], correct: "C" },
-                { q: "Em certas células encontramos o retículo endoplasmático liso muito bem desenvolvido. Levando isso em consideração, podemos concluir que essas células produzem:", options: ["A: Proteínas;", "B: Lipídios;", "C: Aminoácidos;", "D: Polissacarídeos."], correct: "B" },
-                { q: "Complete a frase: Os esteroides são considerados uma categoria especial de ___________, sendo o __________ o esteroide mais conhecido. As células utilizam o _________ como matéria-prima para a fabricação das ___________ e dos ________________.", options: ["A: Proteínas, colesterol, aminoácido, plantas, hormônios vegetais.", "B: Carboidratos, os hormônios vegetais, amido, enzimas, carboidratos.", "C: Polissacarídeos, glicogênio, amido, proteínas, hormônios vegetais.", "D: Lipídios, colesterol, colesterol, membranas celulares, hormônios esteroides."], correct: "D" },
-                { q: "Sobre os lipídios é correto afirmar que:", options: ["A: são as macromoléculas fundamentais para a estrutura e função celular.", "B: são moléculas essenciais para as reações bioquímicas do nosso corpo.", "C: são moléculas orgânicas que não se dissolvem em água, mas que são solúveis em substâncias orgânicas, tais como álcool, éter e acetona.", "D: são compostos orgânicos importantes para acelerar reações químicas no organismo."], correct: "C" },
-                { q: "Entre as alternativas abaixo, identifique qual NÃO apresenta uma função dos lipídios.", options: ["A: Reserva energética", "B: Isolamento térmico", "C: Auxiliar na absorção de vitaminas", "D: Produção de hormônios", "E: Combate às infecções através dos anticorpos"], correct: "E" },
-                { q: "Os lipídios são moléculas formadas principalmente por carbono, oxigênio e hidrogênio, cuja característica mais marcante é sua natureza hidrofóbica, ou seja, formam uma mistura heterogênea com a água. Observe os compostos a seguir e indique qual dos grupos de substâncias NÃO é um tipo de lipídio.", options: ["A: Carotenoides", "B: Oligossacarídeos", "C: Cerídeos", "D: Esteroides", "E: Fosfolipídios"], correct: "B" },
-                { q: "Os lipídios são as gorduras presentes nos alimentos e quando consumidos da maneira correta trazem benefícios para saúde, como transporte de vitaminas, síntese de hormônios e isolamento térmico para o corpo. Para serem absorvidos pelo organismo, as gorduras são quebradas em unidades menores através da ação de qual enzima?", options: ["A: protease", "B: amilase", "C: lipase", "D: lactase", "E: urease"], correct: "C" },
-                { q: "Para o funcionamento das atividades celulares, a célula necessita de nutrientes que desenvolverão funções específicas. No caso dos lipídios, fonte de energia, suas ligações são quebradas e a energia armazenada é liberada. No citoplasma da célula, qual a organela responsável pela quebra dessas moléculas na digestão celular?", options: ["A: ribossomo", "B: retículo endoplasmático", "C: membrana plasmática", "D: lisossomo", "E: complexo de golgi"], correct: "D" },
-                { q: "Para proteger a célula e separá-la do meio exterior a membrana plasmática é conformada por uma bicamada lipídica, que confere estabilidade e flexibilidade à membrana. Sobre a membrana plasmática, é correto afirmar que ela é formada por:", options: ["A: Apenas fosfolipídios", "B: Fosfolipídios e proteínas", "C: Apenas proteínas", "D: Lipídios", "E: Ácidos graxos"], correct: "B" },
-                { q: "O tecido conjuntivo do corpo humano capaz de armazenar gordura é chamado de tecido adiposo. Ele está presente em maior quantidade embaixo da pele, mas também envolve alguns órgãos. Quais os nomes das células do tecido adiposo que são capazes de armazenar gordura?", options: ["A: Leucócitos", "B: Granulócitos", "C: Melanócitos", "D: Adipócitos", "E: Epitélios"], correct: "D" },
-                { q: "Os mais importantes lipídios são os óleos e as gorduras, responsáveis pela reserva de energia em diversos organismos. Eles possuem estruturas semelhantes, pois são sintetizados em organismos vivos por uma reação que envolve:", options: ["A: ácido carboxílico e etanol", "B: ácido graxo e glicerol", "C: ácido graxo e etanol", "D: ácido carboxílico e glicerol"], correct: "B" }
+                { type: 'mc', q: "Os lipídios, chamados popularmente de gorduras, são substâncias que se caracterizam principalmente por sua baixa solubilidade em água. Entre as alternativas a seguir, marque aquela que não se refere a uma importância biológica dos lipídios.", options: ["A: Funcionam como reserva energética.", "B: Atuam na impermeabilização de superfícies que sofrem com a desidratação.", "C: Fazem parte da composição da membrana plasmática.", "D: Fazem parte da composição de hormônios.", "E: Atuam como catalisadores biológicos."], correct: "E" },
+                { type: 'mc', q: "(UFRN) Embora seja visto como um vilão, o colesterol é muito importante para o organismo humano porque ele é", options: ["A: precursor da síntese de testosterona e progesterona.", "B: agente oxidante dos carboidratos.", "C: responsável pela resistência de cartilagens e tendões.", "D: cofator das reações biológicas."], correct: "A" },
+                { type: 'mc', q: "Fosfolipídios contêm:", options: ["A: fosfato e ácidos graxos", "B: apenas açúcares", "C: aminoácidos", "D: nucleotídeos"], correct: "A" },
+                { type: 'mc', q: "Qual não é um lipídio?", options: ["A: gorduras", "B: óleos", "C: proteínas", "D: ceras"], correct: "C" },
+                { type: 'mc', q: "Um ácido graxo típico tem:", options: ["A: número par de carbonos", "B: ímpares apenas", "C: sempre ramificado", "D: sem hidrogênios"], correct: "A" },
+                { type: 'mc', q: "Óleos diferem de gorduras por:", options: ["A: líquido à temperatura ambiente", "B: sólido à temperatura ambiente", "C: cor", "D: número de cadeias"], correct: "A" },
+                { type: 'mc', q: "O colesterol é precursor de:", options: ["A: esteroides", "B: carboidratos", "C: proteínas", "D: ácidos nucleicos"], correct: "A" },
+                { type: 'mc', q: "Triglicerídeos são:", options: ["A: glicerol + 3 ácidos graxos", "B: 2 ácidos graxos", "C: apenas fosfato", "D: açúcares"], correct: "A" },
+                { type: 'mc', q: "Gorduras saturadas têm:", options: ["A: sem ligações duplas", "B: muitas ligações duplas", "C: anéis", "D: ramificações"], correct: "A" },
+                { type: 'mc', q: "Lipídios são insolúveis em:", options: ["A: água", "B: álcool", "C: éter", "D: clorofórmio"], correct: "A" },
+                { type: 'mc', q: "HDL transporta colesterol:", options: ["A: para o fígado", "B: do fígado", "C: em ambas as direções", "D: nenhuma"], correct: "A" },
+                { type: 'mc', q: "A beta-oxidação ocorre na:", options: ["A: mitocôndria", "B: citosol", "C: peroxissomos apenas", "D: RE"], correct: "A" },
+                { type: 'mc', q: "A lipogênese é estimulada por:", options: ["A: insulina", "B: glucagon", "C: epinefrina", "D: cortisol"], correct: "A" },
+                { type: 'mc', q: "Eicosanoides derivam de:", options: ["A: ácido araquidônico", "B: glicerol", "C: colesterol", "D: acetato"], correct: "A" },
+                { type: 'mc', q: "A síntese de ácidos graxos usa FAS I para:", options: ["A: alongamento cíclico de malonil-CoA", "B: beta-oxidação reversa", "C: hidrólise direta", "D: sem NADPH"], correct: "A" },
+                { type: 'mc', q: "Em aterosclerose, LDL oxidado ativa:", options: ["A: macrófagos via scavenger receptors, formando foam cells", "B: HDL protetor", "C: beta-oxidação hepática", "D: sem inflamação"], correct: "A" },
+                { type: 'mc', q: "Os esfingolipídios como esfingomielina são cruciais para:", options: ["A: domínios de sinalização em membranas", "B: armazenamento calórico", "C: hidrólise ácida", "D: transporte aquoso"], correct: "A" },
+                { type: 'mc', q: "A via de síntese de colesterol inicia com:", options: ["A: HMG-CoA redutase convertendo em mevalonato", "B: acetil-CoA direto", "C: squaleno hidrolisado", "D: sem regulação"], correct: "A" },
+                { type: 'mc', q: "Ácidos graxos ômega-3 reduzem risco cardiovascular por:", options: ["A: produção de eicosanoides anti-inflamatórios", "B: aumento de LDL", "C: rigidez de membrana", "D: armazenamento excessivo"], correct: "A" },
+                { type: 'mc', q: "As lipoproteínas VLDL transportam:", options: ["A: triglicerídeos endógenos do fígado para tecidos", "B: colesterol exógeno", "C: proteínas plasmáticas", "D: glicose ligada"], correct: "A" },
+                { type: 'mc', q: "A assimetria de fosfolipídios em membranas é mantida por:", options: ["A: flippases e floppases ATP-dependentes", "B: difusão livre", "C: hidrofobicidade igual", "D: sem necessidade"], correct: "A" },
+                { type: 'mc', q: "Em cetogênese hepática, acetil-CoA forma:", options: ["A: corpos cetônicos para cérebro em jejum", "B: glicose via gluconeogênese", "C: ATP direto", "D: lipídios insolúveis"], correct: "A" },
+                { type: 'mc', q: "O PLA2 cliva fosfolipídios liberando:", options: ["A: ácido araquidônico para eicosanoides", "B: glicerol isolado", "C: colesterol livre", "D: sem sinalização"], correct: "A" },
+                { type: 'mc', q: "A deficiência de LCAT causa:", options: ["A: acúmulo de HDL imaturo e corneais opacas", "B: hipercolesterolemia baixa", "C: beta-oxidação excessiva", "D: sem impacto visual"], correct: "A" }
+            ],
+            section5: [  // 10 questões abertas (distribuídas, nível avançado)
+                { type: 'open', q: "Explique o mecanismo quimiosmótico na síntese de ATP, incluindo o papel do gradiente protônico.", keywords: ["quimiosmose", "gradiente protônico", "ATP sintase", "prótons"] },
+                { type: 'open', q: "Descreva como a regulação alostérica da PFK-1 integra sinais energéticos na glicólise.", keywords: ["alostérica", "PFK-1", "ATP inibe", "AMP ativa", "frutose-2,6-bisfosfato"] },
+                { type: 'open', q: "Discuta o papel anfibólico do ciclo de Krebs na interconexão de vias metabólicas.", keywords: ["anfibólico", "TCA", "precursores", "biossíntese", "NADH", "FADH2"] },
+                { type: 'open', q: "Explique por que a beta-oxidação de ácidos graxos não pode fornecer net glicose em humanos.", keywords: ["beta-oxidação", "acetil-CoA", "piruvato carboxilase", "sem net glicose", "ciclo de Krebs"] },
+                { type: 'open', q: "Descreva o impacto de mutações em genes mitocondriais na fosforilação oxidativa.", keywords: ["mutações mitocondriais", "fosforilação oxidativa", "ATP reduzido", "neuropatias", "fadiga"] },
+                { type: 'open', q: "Explique o mecanismo de ação da insulina na lipogênese hepática.", keywords: ["insulina", "lipogênese", "ACC desfosforilada", "SREBP-1c", "malonil-CoA"] },
+                { type: 'open', q: "Discuta o efeito Warburg em células cancerosas e suas implicações terapêuticas.", keywords: ["Warburg", "glicólise aeróbica", "biossíntese", "inibidores glicolíticos", "proliferação"] },
+                { type: 'open', q: "Descreva a biossíntese de colesterol, destacando regulação por estatinas.", keywords: ["biossíntese colesterol", "HMG-CoA redutase", "estatinas inibem", "mevalonato", "feedback"] },
+                { type: 'open', q: "Explique a formação de domínios lipídicos (rafts) em membranas plasmáticas.", keywords: ["rafts", "domínios lipídicos", "colesterol", "esfingolipídios", "sinalização"] },
+                { type: 'open', q: "Discuta o papel dos eicosanoides na inflamação e como NSAIDs os modulam.", keywords: ["eicosanoides", "inflamação", "prostaglandinas", "NSAIDs inibem COX", "leucotrienos"] }
             ]
         };
 
-        // Função para gerar perguntas aleatórias
+        // Função para gerar perguntas aleatórias (suporte a MC e open)
         function generateQuestions(sectionId, pool) {
-            const shuffled = shuffle([...pool]).slice(0, 5);
+            const shuffled = shuffle([...pool]).slice(0, sectionId === 'section5' ? pool.length : 5);  // Todas as 10 para abertas
             const container = document.getElementById(`questions${sectionId.slice(-1)}`);
             shuffled.forEach((item, index) => {
                 const qDiv = document.createElement('div');
                 qDiv.classList.add('question');
-                qDiv.dataset.correct = item.correct;
-                const p = document.createElement('p');
-                p.textContent = item.q;
-                qDiv.appendChild(p);
-                const optionsDiv = document.createElement('div');
-                optionsDiv.classList.add('options');
-                item.options.forEach(opt => {
-                    const [value, text] = opt.split(': ');
-                    const btn = document.createElement('button');
-                    btn.classList.add('option');
-                    btn.dataset.value = value;
-                    btn.textContent = opt;
-                    optionsDiv.appendChild(btn);
-                });
-                qDiv.appendChild(optionsDiv);
+                qDiv.dataset.type = item.type;
+                if (item.type === 'mc') {
+                    qDiv.dataset.correct = item.correct;
+                    const p = document.createElement('p');
+                    p.textContent = item.q;
+                    qDiv.appendChild(p);
+                    const optionsDiv = document.createElement('div');
+                    optionsDiv.classList.add('options');
+                    item.options.forEach(opt => {
+                        const [value, text] = opt.split(': ');
+                        const btn = document.createElement('button');
+                        btn.classList.add('option');
+                        btn.dataset.value = value;
+                        btn.textContent = opt;
+                        optionsDiv.appendChild(btn);
+                    });
+                    qDiv.appendChild(optionsDiv);
+                } else {  // open
+                    qDiv.dataset.keywords = item.keywords.join(',');
+                    const p = document.createElement('p');
+                    p.textContent = item.q;
+                    qDiv.appendChild(p);
+                    const textarea = document.createElement('textarea');
+                    textarea.classList.add('open-answer');
+                    textarea.placeholder = 'Digite sua resposta aqui...';
+                    qDiv.appendChild(textarea);
+                }
                 container.appendChild(qDiv);
             });
         }
@@ -270,14 +326,15 @@
             generateQuestions('section2', questionPools.section2);
             generateQuestions('section3', questionPools.section3);
             generateQuestions('section4', questionPools.section4);
+            generateQuestions('section5', questionPools.section5);
 
-            // Adicionar event listeners para seleção
-            document.querySelectorAll('.option').forEach(button => {
-                button.addEventListener('click', function() {
-                    const options = this.parentElement.querySelectorAll('.option');
+            // Adicionar event listeners para seleção (MC)
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('option')) {
+                    const options = e.target.parentElement.querySelectorAll('.option');
                     options.forEach(opt => opt.classList.remove('selected'));
-                    this.classList.add('selected');
-                });
+                    e.target.classList.add('selected');
+                }
             });
         });
 
@@ -285,32 +342,46 @@
             const section = document.getElementById(sectionId);
             const questions = section.querySelectorAll('.question');
             let correctCount = 0;
+            let totalQuestions = 0;
             let errors = [];
 
             questions.forEach((q, index) => {
-                const selected = q.querySelector('.option.selected');
-                const correct = q.dataset.correct;
-                if (selected && selected.dataset.value === correct) {
-                    correctCount++;
-                } else {
-                    const questionText = q.querySelector('p').textContent;
-                    const selectedValue = selected ? selected.textContent : 'Nenhuma selecionada';
-                    const correctOption = q.querySelector(`.option[data-value="${correct}"]`).textContent;
-                    errors.push(`${questionText} - Sua resposta: ${selectedValue} (Errada). Correta: ${correctOption}`);
+                totalQuestions++;
+                if (q.dataset.type === 'mc') {
+                    const selected = q.querySelector('.option.selected');
+                    const correct = q.dataset.correct;
+                    if (selected && selected.dataset.value === correct) {
+                        correctCount++;
+                    } else {
+                        const questionText = q.querySelector('p').textContent;
+                        const selectedValue = selected ? selected.textContent : 'Nenhuma selecionada';
+                        const correctOption = Array.from(q.querySelectorAll('.option')).find(opt => opt.dataset.value === correct).textContent;
+                        errors.push(`${questionText} - Sua resposta: ${selectedValue} (Errada). Correta: ${correctOption}`);
+                    }
+                } else {  // open
+                    const answer = q.querySelector('.open-answer').value.toLowerCase().trim();
+                    const keywords = q.dataset.keywords.split(',').map(k => k.toLowerCase().trim());
+                    const matches = keywords.filter(kw => answer.includes(kw)).length;
+                    if (matches >= 2) {  // Pelo menos 2 keywords para "correto"
+                        correctCount++;
+                    } else {
+                        const questionText = q.querySelector('p').textContent;
+                        errors.push(`${questionText} - Resposta parcial/errada. Sugestão: Inclua termos como ${keywords.slice(0,3).join(', ')}...`);
+                    }
                 }
             });
 
             const feedback = document.getElementById(`feedback${sectionId.slice(-1)}`);
-            feedback.innerHTML = `<span class="${correctCount === questions.length ? 'correct' : 'incorrect'}">Você acertou ${correctCount} de ${questions.length} questões.</span>`;
+            feedback.innerHTML = `<span class="${correctCount === totalQuestions ? 'correct' : 'incorrect'}">Você acertou ${correctCount} de ${totalQuestions} questões.</span>`;
 
             const result = document.getElementById(`result${sectionId.slice(-1)}`);
             result.style.display = 'block';
-            result.innerHTML = '<h3>Erros Detalhados:</h3><ul>' + errors.map(err => `<li>${err}</li>`).join('') + '</ul>';
             if (errors.length === 0) {
-                result.innerHTML = '<p>Todas corretas! Parabéns!</p>';
+                result.innerHTML = '<p class="correct">Todas corretas! Parabéns!</p>';
+            } else {
+                result.innerHTML = '<h3>Erros Detalhados:</h3><ul>' + errors.map(err => `<li>${err}</li>`).join('') + '</ul>';
             }
         }
     </script>
 </body>
 </html>
-
